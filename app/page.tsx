@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
+import Link from "next/link";
 import {
   AnimatePresence,
   motion,
@@ -1088,6 +1089,15 @@ export default function Home() {
         <VenueSection />
 
         <Footer />
+{/* Secret Admin Link — small, bottom */}
+<div className="mt-8 text-center">
+  <Link
+    href="/admin-login"
+    className="text-[10px] text-zinc-600 hover:text-zinc-400 transition"
+  >
+    Admin
+  </Link>
+</div>
       </main>
     </>
   );
