@@ -1,0 +1,153 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum PlayerStatus {
+  UPCOMING
+  IN_AUCTION
+  SOLD
+  UNSOLD
+}
+
+enum AuctionResultStatus {
+  SOLD
+  UNSOLD
+}
+
+model Admin {
+  id           Int            @id @default(autoincrement())
+  email        String         @unique
+  passwordHash String
+  createdAt    DateTime       @default(now())
+  bids         Bid[]
+  events       AuctionEvent[]
+}
+
+model Auction {
+  id        String         @id
+  name      String
+  status    String         @default("NOT_STARTED")
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  teams   Team[]
+  players Player[]
+  state   AuctionState?
+  bids    Bid[]
+  results AuctionResult[]
+  events  AuctionEvent[]
+}
+
+model Team {
+  id                  String   @id
+  auctionId           String
+  name                String
+  short               String
+  logo                String
+  color               String
+  textOnColor         String
+  totalCoins          Int
+  captainCoins        Int
+  initialAuctionPurse Int
+  remainingPurse      Int
+  boughtCount         Int      @default(0)
+  targetSquadSize     Int
+  createdAt           DateTime @default(now())
+
+  auction     Auction         @relation(fields: [auctionId], references: [id])
+  soldPlayers Player[]        @relation("PlayerSoldToTeam")
+  bids        Bid[]
+  results     AuctionResult[]
+
+  @@index([auctionId])
+}
+
+model Player {
+  id           Int          @id @default(autoincrement())
+  auctionId    String
+  name         String
+  age          String
+  role         String
+  basePrice    Int
+  status       PlayerStatus @default(UPCOMING)
+  soldToTeamId String?
+  soldPrice    Int?
+  soldOrder    Int?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  auction  Auction        @relation(fields: [auctionId], references: [id])
+  soldTo   Team?          @relation("PlayerSoldToTeam", fields: [soldToTeamId], references: [id])
+  bids     Bid[]
+  result   AuctionResult?
+
+  @@index([auctionId, status])
+}
+
+model AuctionState {
+  id                     Int      @id @default(autoincrement())
+  auctionId              String   @unique
+  currentBid             Int      @default(10)
+  leadingTeamId          String?
+  activePlayerId         Int?
+  secondsLeft            Int      @default(15)
+  timerPaused            Boolean  @default(false)
+  timerEndsAt            DateTime?
+  pausedRemainingSeconds Int?
+  statusNote             String   @default("Auction ready")
+  updatedAt              DateTime @updatedAt
+
+  auction Auction @relation(fields: [auctionId], references: [id])
+}
+
+model Bid {
+  id        Int      @id @default(autoincrement())
+  auctionId String
+  playerId  Int
+  teamId    String
+  adminId   Int?
+  amount    Int
+  createdAt DateTime @default(now())
+
+  auction Auction @relation(fields: [auctionId], references: [id])
+  player  Player  @relation(fields: [playerId], references: [id])
+  team    Team    @relation(fields: [teamId], references: [id])
+  admin   Admin?  @relation(fields: [adminId], references: [id])
+
+  @@index([auctionId, playerId, createdAt])
+}
+
+model AuctionResult {
+  id        Int                 @id @default(autoincrement())
+  auctionId String
+  playerId  Int                 @unique
+  teamId    String?
+  status    AuctionResultStatus
+  soldPrice Int?
+  soldOrder Int?
+  createdAt DateTime            @default(now())
+
+  auction Auction @relation(fields: [auctionId], references: [id])
+  player  Player  @relation(fields: [playerId], references: [id])
+  team    Team?   @relation(fields: [teamId], references: [id])
+}
+
+model AuctionEvent {
+  id        Int      @id @default(autoincrement())
+  auctionId String
+  adminId   Int?
+  type      String
+  payload   Json?
+  createdAt DateTime @default(now())
+
+  auction Auction @relation(fields: [auctionId], references: [id])
+  admin   Admin?  @relation(fields: [adminId], references: [id])
+
+  @@index([auctionId, createdAt])
+}

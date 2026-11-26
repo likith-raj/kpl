@@ -12,11 +12,7 @@ const workSans = Work_Sans({
   display: "swap",
 });
 
-/* ================================================================
-   TYPES & CONSTANTS
-   ================================================================ */
-
-type PlayerRole = "Batsman" | "Bowler" | "All rounder";
+type PlayerRole = "Batsman" | "Bowler" | "All rounder" | "Wicketkeeper";
 type AuctionStatus = "IN AUCTION" | "SOLD" | "UNSOLD" | "UPCOMING";
 
 interface Team {
@@ -46,60 +42,15 @@ interface AuctionPlayer {
   soldOrder?: number;
 }
 
+interface SoldBannerPayload {
+  id: number;
+  playerName: string;
+  team: Team;
+  amount: number;
+}
+
 const ROUND_SECONDS = 15;
 const BASE_PRICE = 10;
-const TOTAL_COINS = 2000;
-const CAPTAIN_COINS = 200;
-const AUCTION_PURSE = TOTAL_COINS - CAPTAIN_COINS;
-const TARGET_SQUAD_PER_TEAM = 4;
-
-const INITIAL_TEAMS: Team[] = [
-  { id: "rcb", name: "Royal Challengers Bengaluru", short: "RCB", logo: "/logos/rcb.png", color: "#DC2626", textOnColor: "#FFFFFF", totalCoins: TOTAL_COINS, captainCoins: CAPTAIN_COINS, initialAuctionPurse: AUCTION_PURSE, remainingPurse: 1730, boughtCount: 2, targetSquadSize: TARGET_SQUAD_PER_TEAM },
-  { id: "csk", name: "Chennai Super Kings", short: "CSK", logo: "/logos/csk.svg", color: "#FACC15", textOnColor: "#09090B", totalCoins: TOTAL_COINS, captainCoins: CAPTAIN_COINS, initialAuctionPurse: AUCTION_PURSE, remainingPurse: 1760, boughtCount: 1, targetSquadSize: TARGET_SQUAD_PER_TEAM },
-  { id: "mi", name: "Mumbai Indians", short: "MI", logo: "/logos/mi.svg", color: "#0057B8", textOnColor: "#FFFFFF", totalCoins: TOTAL_COINS, captainCoins: CAPTAIN_COINS, initialAuctionPurse: AUCTION_PURSE, remainingPurse: 1770, boughtCount: 1, targetSquadSize: TARGET_SQUAD_PER_TEAM },
-  { id: "gt", name: "Gujarat Titans", short: "GT", logo: "/logos/gt.png", color: "#1B2133", textOnColor: "#FFFFFF", totalCoins: TOTAL_COINS, captainCoins: CAPTAIN_COINS, initialAuctionPurse: AUCTION_PURSE, remainingPurse: 1800, boughtCount: 0, targetSquadSize: TARGET_SQUAD_PER_TEAM },
-  { id: "rr", name: "Rajasthan Royals", short: "RR", logo: "/logos/rr.png", color: "#DB2777", textOnColor: "#FFFFFF", totalCoins: TOTAL_COINS, captainCoins: CAPTAIN_COINS, initialAuctionPurse: AUCTION_PURSE, remainingPurse: 1780, boughtCount: 1, targetSquadSize: TARGET_SQUAD_PER_TEAM },
-  { id: "srh", name: "Sunrisers Hyderabad", short: "SRH", logo: "/logos/srh.png", color: "#EA580C", textOnColor: "#FFFFFF", totalCoins: TOTAL_COINS, captainCoins: CAPTAIN_COINS, initialAuctionPurse: AUCTION_PURSE, remainingPurse: 1770, boughtCount: 1, targetSquadSize: TARGET_SQUAD_PER_TEAM },
-  { id: "kkr", name: "Kolkata Knight Riders", short: "KKR", logo: "/logos/kkr.svg", color: "#6D28D9", textOnColor: "#FFFFFF", totalCoins: TOTAL_COINS, captainCoins: CAPTAIN_COINS, initialAuctionPurse: AUCTION_PURSE, remainingPurse: 1800, boughtCount: 0, targetSquadSize: TARGET_SQUAD_PER_TEAM },
-  { id: "dc", name: "Delhi Capitals", short: "DC", logo: "/logos/dc.png", color: "#1D4ED8", textOnColor: "#FFFFFF", totalCoins: TOTAL_COINS, captainCoins: CAPTAIN_COINS, initialAuctionPurse: AUCTION_PURSE, remainingPurse: 1800, boughtCount: 0, targetSquadSize: TARGET_SQUAD_PER_TEAM },
-];
-
-const INITIAL_PLAYERS: AuctionPlayer[] = [
-  { id: 1, name: "A.Ravi teja", age: "34", role: "All rounder", basePrice: BASE_PRICE, status: "SOLD", soldToTeamId: "rcb", soldPrice: 40, soldOrder: 1 },
-  { id: 2, name: "Sathwik", age: "24", role: "All rounder", basePrice: BASE_PRICE, status: "SOLD", soldToTeamId: "csk", soldPrice: 40, soldOrder: 2 },
-  { id: 3, name: "BITTU", age: "21", role: "Batsman", basePrice: BASE_PRICE, status: "SOLD", soldToTeamId: "mi", soldPrice: 30, soldOrder: 3 },
-  { id: 4, name: "Sundar", age: "20", role: "All rounder", basePrice: BASE_PRICE, status: "SOLD", soldToTeamId: "srh", soldPrice: 30, soldOrder: 4 },
-  { id: 5, name: "G balaji", age: "22", role: "All rounder", basePrice: BASE_PRICE, status: "SOLD", soldToTeamId: "rr", soldPrice: 20, soldOrder: 5 },
-  { id: 6, name: "Zeeshan hyder", age: "26", role: "All rounder", basePrice: BASE_PRICE, status: "SOLD", soldToTeamId: "rcb", soldPrice: 30, soldOrder: 6 },
-  { id: 7, name: "A.MOSHE", age: "36", role: "Batsman", basePrice: BASE_PRICE, status: "IN AUCTION" },
-  { id: 8, name: "Prasanth (nani)", age: "40", role: "All rounder", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 9, name: "R.DANI", age: "38", role: "Batsman", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 10, name: "Stephen Therey", age: "Not Provided", role: "All rounder", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 11, name: "Nivesh", age: "28", role: "All rounder", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 12, name: "Karunya", age: "31", role: "All rounder", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 13, name: "Pradeep(Moni)", age: "26", role: "Batsman", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 14, name: "Bittu Rithwik", age: "17", role: "Batsman", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 15, name: "Manni", age: "27", role: "All rounder", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 16, name: "Lamechrex", age: "22", role: "All rounder", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 17, name: "Syam prasad", age: "54", role: "All rounder", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 18, name: "Kranthi Kumar", age: "23", role: "Bowler", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 19, name: "Abhilash(kevin)", age: "32", role: "All rounder", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 20, name: "Gachibowli diwakar", age: "35", role: "All rounder", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 21, name: "Vinay Devaraj", age: "56", role: "Bowler", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 22, name: "Kayala Suresh", age: "45", role: "Batsman", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 23, name: "Joseph", age: "26", role: "Batsman", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 24, name: "A Ashu", age: "27", role: "All rounder", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 25, name: "Naresh", age: "36", role: "All rounder", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 26, name: "Rony", age: "25", role: "All rounder", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 27, name: "Keerthan", age: "25", role: "All rounder", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 28, name: "Tani pushpa Kumar", age: "27", role: "Batsman", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 29, name: "Praveen", age: "35", role: "Batsman", basePrice: BASE_PRICE, status: "UPCOMING" },
-  { id: 30, name: "BHARGAV", age: "28", role: "All rounder", basePrice: BASE_PRICE, status: "UPCOMING" },
-];
-
-/* ================================================================
-   WEB AUDIO SOUND EFFECTS
-   ================================================================ */
 
 function useAuctionSounds(muted: boolean) {
   const ctxRef = useRef<AudioContext | null>(null);
@@ -121,8 +72,7 @@ function useAuctionSounds(muted: boolean) {
     const ctx = getContext();
     if (!ctx) return;
     const now = ctx.currentTime;
-    const notes = [523.25, 659.25, 783.99, 1046.5];
-    notes.forEach((freq, idx) => {
+    [523.25, 659.25, 783.99, 1046.5].forEach((freq, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "triangle";
@@ -142,8 +92,7 @@ function useAuctionSounds(muted: boolean) {
     const ctx = getContext();
     if (!ctx) return;
     const now = ctx.currentTime;
-    const freqs = [311.13, 233.08];
-    freqs.forEach((freq, idx) => {
+    [311.13, 233.08].forEach((freq, idx) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
       osc.type = "sawtooth";
@@ -158,29 +107,8 @@ function useAuctionSounds(muted: boolean) {
     });
   }, [getContext, muted]);
 
-  const playBidTick = useCallback(() => {
-    if (muted) return;
-    const ctx = getContext();
-    if (!ctx) return;
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(740, now);
-    gain.gain.setValueAtTime(0.09, now);
-    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.start(now);
-    osc.stop(now + 0.1);
-  }, [getContext, muted]);
-
-  return { playSoldSound, playUnsoldSound, playBidTick };
+  return { playSoldSound, playUnsoldSound };
 }
-
-/* ================================================================
-   ROBOT AVATAR
-   ================================================================ */
 
 function RobotAvatar({ seed, size = 76 }: { seed: string; size?: number }) {
   const hash = useMemo(() => {
@@ -188,10 +116,8 @@ function RobotAvatar({ seed, size = 76 }: { seed: string; size?: number }) {
     for (let i = 0; i < seed.length; i++) h = seed.charCodeAt(i) + ((h << 5) - h);
     return Math.abs(h);
   }, [seed]);
-
   const antennaType = hash % 3;
   const mouthType = (hash >> 2) % 3;
-
   return (
     <div style={{ width: size, height: size }} className="relative shrink-0 overflow-hidden rounded-full border border-white/20 bg-[#121212]">
       <svg viewBox="0 0 100 100" className="h-full w-full">
@@ -231,13 +157,6 @@ function TeamLogoBadge({ team, size = 44 }: { team: Team; size?: number }) {
   );
 }
 
-interface SoldBannerPayload {
-  id: number;
-  playerName: string;
-  team: Team;
-  amount: number;
-}
-
 function CenterSoldOverlay({ banner, onDone }: { banner: SoldBannerPayload | null; onDone: () => void }) {
   useEffect(() => {
     if (!banner) return;
@@ -263,16 +182,125 @@ function CenterSoldOverlay({ banner, onDone }: { banner: SoldBannerPayload | nul
   );
 }
 
-/* ================================================================
-   MAIN VIEWER PAGE
-   ================================================================ */
+function TeamSquadsPanel({
+  teams,
+  players,
+  isOpen,
+  onClose,
+}: {
+  teams: Team[];
+  players: AuctionPlayer[];
+  isOpen: boolean;
+  onClose: () => void;
+}) {
+  const [expandedTeam, setExpandedTeam] = useState<string | null>(null);
+
+  const soldPlayersByTeam = useMemo(() => {
+    const map = new Map<string, AuctionPlayer[]>();
+    teams.forEach((t) => map.set(t.id, []));
+    players
+      .filter((p) => p.status === "SOLD" && p.soldToTeamId)
+      .sort((a, b) => (b.soldOrder ?? 0) - (a.soldOrder ?? 0))
+      .forEach((p) => {
+        const arr = map.get(p.soldToTeamId!);
+        if (arr) arr.push(p);
+      });
+    return map;
+  }, [teams, players]);
+
+  return (
+    <AnimatePresence>
+      {isOpen && (
+        <>
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[140] bg-black/50"
+            onClick={onClose}
+          />
+          <motion.div
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed right-0 top-0 z-[145] h-full w-full max-w-md overflow-y-auto border-l border-white/10 bg-[#0a0a0a] p-5 shadow-2xl"
+          >
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="text-lg font-bold text-white uppercase">Team Squads</h2>
+              <button type="button" onClick={onClose} className="rounded-lg border border-white/15 bg-[#141414] px-3 py-1 text-sm text-zinc-300">
+                Close
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {teams.map((team) => {
+                const squad = soldPlayersByTeam.get(team.id) ?? [];
+                const isExpanded = expandedTeam === team.id;
+                return (
+                  <div key={team.id} className="overflow-hidden rounded-xl border border-white/10 bg-[#0c0c0c]">
+                    <button
+                      type="button"
+                      onClick={() => setExpandedTeam(isExpanded ? null : team.id)}
+                      className="flex w-full items-center justify-between gap-3 p-3 text-left"
+                      style={{ backgroundColor: isExpanded ? team.color : "#0c0c0c", color: isExpanded ? team.textOnColor : "#FFFFFF" }}
+                    >
+                      <div className="flex min-w-0 items-center gap-3">
+                        <TeamLogoBadge team={team} size={36} />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-bold uppercase">{team.short}</p>
+                          <p className={`truncate text-xs ${isExpanded ? "opacity-90" : "text-zinc-500"}`}>
+                            {squad.length} players · ₹{team.remainingPurse} left
+                          </p>
+                        </div>
+                      </div>
+                      <span className={`text-lg ${isExpanded ? "" : "text-zinc-400"}`}>{isExpanded ? "▲" : "▼"}</span>
+                    </button>
+
+                    <AnimatePresence>
+                      {isExpanded && (
+                        <motion.div
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          className="overflow-hidden"
+                        >
+                          <div className="space-y-1.5 p-3">
+                            {squad.length === 0 ? (
+                              <p className="text-xs text-zinc-500">No players sold yet.</p>
+                            ) : (
+                              squad.map((p) => (
+                                <div key={p.id} className="flex items-center justify-between rounded-lg border border-white/10 bg-[#121212] px-3 py-2 text-sm">
+                                  <div className="min-w-0">
+                                    <p className="truncate font-semibold text-white">{p.name}</p>
+                                    <p className="text-xs text-zinc-400">{p.role}</p>
+                                  </div>
+                                  <span className="font-semibold text-[#FACC15]">₹{p.soldPrice}</span>
+                                </div>
+                              ))
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                );
+              })}
+            </div>
+          </motion.div>
+        </>
+      )}
+    </AnimatePresence>
+  );
+}
 
 export default function AuctionViewerPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const socketRef = useRef<Socket | null>(null);
+  const teamsRef = useRef<Team[]>([]);
 
-  const [teams, setTeams] = useState<Team[]>(INITIAL_TEAMS);
-  const [players, setPlayers] = useState<AuctionPlayer[]>(INITIAL_PLAYERS);
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [players, setPlayers] = useState<AuctionPlayer[]>([]);
   const [leadingTeamId, setLeadingTeamId] = useState<string>("rcb");
   const [currentBid, setCurrentBid] = useState<number>(BASE_PRICE);
   const [secondsLeft, setSecondsLeft] = useState<number>(ROUND_SECONDS);
@@ -284,12 +312,24 @@ export default function AuctionViewerPage() {
   const [statusNote, setStatusNote] = useState<string>("Connecting to auction...");
   const [connectedUsers, setConnectedUsers] = useState<number>(0);
   const [isConnected, setIsConnected] = useState<boolean>(false);
+  const [bidCount, setBidCount] = useState<number>(0);
+  const [nextIncrement, setNextIncrement] = useState<number>(10);
+  const [showSquads, setShowSquads] = useState<boolean>(false);
+  const [timerSeconds, setTimerSeconds] = useState<number>(15);
 
   const { playSoldSound, playUnsoldSound } = useAuctionSounds(muted);
 
-  // ============ SOCKET CONNECTION ============
   useEffect(() => {
-    const socket = io("http://localhost:4000", { transports: ["websocket"] });
+    teamsRef.current = teams;
+  }, [teams]);
+
+  useEffect(() => {
+    const socket = io("http://localhost:4000", {
+      transports: ["websocket", "polling"],
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000,
+    });
     socketRef.current = socket;
 
     socket.on("connect", () => {
@@ -304,37 +344,39 @@ export default function AuctionViewerPage() {
       setStatusNote("Disconnected · Reconnecting...");
     });
 
-    socket.on("auction:state", (state: { currentBid: number; leadingTeamId: string; secondsLeft: number; timerPaused: boolean; statusNote: string }) => {
+    socket.on("auction:state", (state: any) => {
       setCurrentBid(state.currentBid);
       setLeadingTeamId(state.leadingTeamId);
       setSecondsLeft(state.secondsLeft);
       setTimerPaused(state.timerPaused);
       setStatusNote(state.statusNote);
+      setTeams(state.teams);
+      setPlayers(state.players);
+      setBidCount(state.bidCount ?? 0);
+      setNextIncrement(state.nextIncrement ?? 10);
+      setTimerSeconds(state.timerSeconds ?? 15);
     });
 
-    socket.on("auction:update", (state: { currentBid: number; leadingTeamId: string; secondsLeft: number; timerPaused: boolean; statusNote: string }) => {
+    socket.on("auction:update", (state: any) => {
       setCurrentBid(state.currentBid);
       setLeadingTeamId(state.leadingTeamId);
       setSecondsLeft(state.secondsLeft);
       setTimerPaused(state.timerPaused);
       setStatusNote(state.statusNote);
+      setTeams(state.teams);
+      setPlayers(state.players);
+      setBidCount(state.bidCount ?? 0);
+      setNextIncrement(state.nextIncrement ?? 10);
+      setTimerSeconds(state.timerSeconds ?? 15);
     });
 
-    socket.on("timer:update", ({ secondsLeft }: { secondsLeft: number }) => {
-      setSecondsLeft(secondsLeft);
-    });
-
-    socket.on("timer:toggle", ({ paused }: { paused: boolean }) => {
-      setTimerPaused(paused);
-    });
-
-    socket.on("timer:reset", ({ seconds }: { seconds: number }) => {
-      setSecondsLeft(seconds);
-    });
+    socket.on("timer:update", ({ secondsLeft }: { secondsLeft: number }) => setSecondsLeft(secondsLeft));
+    socket.on("timer:toggle", ({ paused }: { paused: boolean }) => setTimerPaused(paused));
+    socket.on("timer:reset", ({ seconds }: { seconds: number }) => setSecondsLeft(seconds));
 
     socket.on("player:sold", (data: { playerName: string; teamShort: string; amount: number; teamId: string }) => {
       playSoldSound();
-      const team = INITIAL_TEAMS.find((t) => t.id === data.teamId);
+      const team = teamsRef.current.find((t) => t.id === data.teamId);
       if (team) {
         setSoldBanner({
           id: Date.now(),
@@ -345,17 +387,10 @@ export default function AuctionViewerPage() {
       }
     });
 
-    socket.on("player:unsold", () => {
-      playUnsoldSound();
-    });
+    socket.on("player:unsold", () => playUnsoldSound());
+    socket.on("users:count", (count: number) => setConnectedUsers(count));
 
-    socket.on("users:count", (count: number) => {
-      setConnectedUsers(count);
-    });
-
-    return () => {
-      socket.disconnect();
-    };
+    return () => { socket.disconnect(); };
   }, [playSoldSound, playUnsoldSound]);
 
   const activePlayer = useMemo(
@@ -380,8 +415,8 @@ export default function AuctionViewerPage() {
     return map;
   }, [teams]);
 
-  const leadingTeam = teamMap.get(leadingTeamId) ?? teams[0];
-  const timerPercent = Math.max(0, Math.min(100, (secondsLeft / ROUND_SECONDS) * 100));
+  const leadingTeam = teamMap.get(leadingTeamId) ?? teams[0] ?? { id: "rcb", name: "Royal Challengers Bengaluru", short: "RCB", logo: "/logos/rcb.png", color: "#DC2626", textOnColor: "#FFFFFF" as const, totalCoins: 2000, captainCoins: 200, initialAuctionPurse: 1800, remainingPurse: 1800, boughtCount: 0, targetSquadSize: 4 };
+  const timerPercent = Math.max(0, Math.min(100, (secondsLeft / timerSeconds) * 100));
 
   const toggleFullscreen = async () => {
     try {
@@ -400,22 +435,25 @@ export default function AuctionViewerPage() {
   return (
     <div ref={containerRef} className={`${workSans.className} min-h-screen w-full overflow-x-hidden bg-[#050505] text-base font-normal text-white`}>
       <CenterSoldOverlay banner={soldBanner} onDone={() => setSoldBanner(null)} />
+      <TeamSquadsPanel teams={teams} players={players} isOpen={showSquads} onClose={() => setShowSquads(false)} />
 
-      {/* Top Bar */}
       {!projectorMode && (
         <header className="w-full border-b border-white/10 bg-[#080808]">
           <div className="flex w-full flex-wrap items-center justify-between gap-3 px-4 py-3.5 md:px-6">
             <div className="flex flex-wrap items-center gap-2">
-              <Link href="/" className="rounded-lg border border-white/15 bg-[#111111] px-3 py-1.5 text-sm font-medium text-[#FACC15] transition hover:border-white/30">
-                ← Home
-              </Link>
-              <Link href="/registers" className="rounded-lg border border-white/15 bg-[#111111] px-3 py-1.5 text-sm font-medium text-zinc-200 transition hover:border-white/30">
-                Players
-              </Link>
+              <Link href="/" className="rounded-lg border border-white/15 bg-[#111111] px-3 py-1.5 text-sm font-medium text-[#FACC15] transition hover:border-white/30">← Home</Link>
+              <Link href="/registers" className="rounded-lg border border-white/15 bg-[#111111] px-3 py-1.5 text-sm font-medium text-zinc-200 transition hover:border-white/30">Players</Link>
               <span className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold ${isConnected ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-300" : "border-rose-500/40 bg-rose-500/10 text-rose-300"}`}>
                 <span className={`h-2 w-2 rounded-full ${isConnected ? "bg-emerald-400" : "bg-rose-400"}`} />
                 {isConnected ? `LIVE · ${connectedUsers} watching` : "OFFLINE"}
               </span>
+              <button
+                type="button"
+                onClick={() => setShowSquads(true)}
+                className="inline-flex items-center gap-1.5 rounded-full border border-sky-500/40 bg-sky-500/10 px-3 py-1 text-xs font-semibold text-sky-300 transition hover:bg-sky-500/20"
+              >
+                📋 Team Squads
+              </button>
             </div>
 
             <div className="text-center">
@@ -424,24 +462,15 @@ export default function AuctionViewerPage() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <button type="button" onClick={() => setMuted((m) => !m)} className="rounded-lg border border-white/15 bg-[#111111] px-3 py-1.5 text-sm font-medium text-zinc-200 transition hover:border-white/30">
-                {muted ? "Sound Off" : "Sound On"}
-              </button>
-              <button type="button" onClick={() => setProjectorMode(true)} className="rounded-lg border border-white/15 bg-[#141414] px-3 py-1.5 text-sm font-semibold text-[#FACC15] transition hover:border-white/30">
-                Projector 16:9
-              </button>
-              <button type="button" onClick={toggleFullscreen} className="rounded-lg border border-white/15 bg-[#111111] px-3 py-1.5 text-sm font-medium text-zinc-200 transition hover:border-white/30">
-                {isFullscreen ? "Exit Full" : "Fullscreen"}
-              </button>
-              <Link href="/admin" className="rounded-lg border border-[#FACC15]/40 bg-[#FACC15]/10 px-3 py-1.5 text-sm font-semibold text-[#FACC15] transition hover:bg-[#FACC15]/20">
-                Admin Login
-              </Link>
+              <button type="button" onClick={() => setMuted((m) => !m)} className="rounded-lg border border-white/15 bg-[#111111] px-3 py-1.5 text-sm font-medium text-zinc-200 transition hover:border-white/30">{muted ? "Sound Off" : "Sound On"}</button>
+              <button type="button" onClick={() => setProjectorMode(true)} className="rounded-lg border border-white/15 bg-[#141414] px-3 py-1.5 text-sm font-semibold text-[#FACC15] transition hover:border-white/30">Projector 16:9</button>
+              <button type="button" onClick={toggleFullscreen} className="rounded-lg border border-white/15 bg-[#111111] px-3 py-1.5 text-sm font-medium text-zinc-200 transition hover:border-white/30">{isFullscreen ? "Exit Full" : "Fullscreen"}</button>
+              <Link href="/admin" className="rounded-lg border border-[#FACC15]/40 bg-[#FACC15]/10 px-3 py-1.5 text-sm font-semibold text-[#FACC15] transition hover:bg-[#FACC15]/20">Admin Login</Link>
             </div>
           </div>
         </header>
       )}
 
-      {/* Status Bar */}
       {!projectorMode && (
         <div className="w-full border-b border-white/10 bg-[#0b0b0b] px-4 py-2 text-xs text-zinc-300 md:px-6">
           <div className="flex flex-wrap items-center justify-between gap-2">
@@ -455,18 +484,13 @@ export default function AuctionViewerPage() {
         <div className="flex w-full items-center justify-between border-b border-white/10 bg-[#080808] px-6 py-3">
           <span className="text-sm font-semibold tracking-wider text-[#FACC15] uppercase">KSL Live Projector Display</span>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={toggleFullscreen} className="rounded-lg border border-white/15 bg-[#111111] px-3 py-1.5 text-sm text-zinc-200">
-              {isFullscreen ? "Exit Full" : "Fullscreen"}
-            </button>
-            <button type="button" onClick={() => setProjectorMode(false)} className="rounded-lg border border-white/15 bg-[#141414] px-3 py-1.5 text-sm font-medium text-[#FACC15]">
-              Exit Projector
-            </button>
+            <button type="button" onClick={toggleFullscreen} className="rounded-lg border border-white/15 bg-[#111111] px-3 py-1.5 text-sm text-zinc-200">{isFullscreen ? "Exit Full" : "Fullscreen"}</button>
+            <button type="button" onClick={() => setProjectorMode(false)} className="rounded-lg border border-white/15 bg-[#141414] px-3 py-1.5 text-sm font-medium text-[#FACC15]">Exit Projector</button>
           </div>
         </div>
       )}
 
       <main className="w-full px-4 py-5 md:px-6">
-        {/* Stats Row */}
         <section className="mb-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
           <div className="rounded-xl border border-white/10 bg-[#0d0d0d] p-4">
             <p className="text-xs font-medium text-zinc-400 uppercase">Total Players</p>
@@ -490,7 +514,6 @@ export default function AuctionViewerPage() {
           </div>
         </section>
 
-        {/* Active Player + Side Lists */}
         <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
           <section className="rounded-xl border border-white/15 bg-[#0c0c0c] p-5 lg:col-span-8">
             {activePlayer ? (
@@ -501,9 +524,7 @@ export default function AuctionViewerPage() {
                     <span className="text-sm font-medium text-zinc-300">{activePlayer.role}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <span className={`rounded-lg border px-3 py-1 text-sm font-bold ${secondsLeft <= 4 ? "border-rose-500 bg-rose-500/20 text-rose-300" : "border-white/20 bg-[#141414] text-[#FACC15]"}`}>
-                      {secondsLeft}s {timerPaused ? "Paused" : "Remaining"}
-                    </span>
+                    <span className={`rounded-lg border px-3 py-1 text-sm font-bold ${secondsLeft <= 4 ? "border-rose-500 bg-rose-500/20 text-rose-300" : "border-white/20 bg-[#141414] text-[#FACC15]"}`}>{secondsLeft}s {timerPaused ? "Paused" : "Remaining"}</span>
                   </div>
                 </div>
 
@@ -517,7 +538,7 @@ export default function AuctionViewerPage() {
                     <div>
                       <p className="text-xs font-medium text-zinc-400">Age: {activePlayer.age} · Base Price: ₹{activePlayer.basePrice}</p>
                       <h2 className="mt-0.5 text-2xl font-bold text-white md:text-3xl">{activePlayer.name}</h2>
-                      <p className="mt-1 text-xs text-zinc-400">Watch live · Admin controls the auction</p>
+                      <p className="mt-1 text-xs text-zinc-400">Bids: {bidCount} · Next increment: ₹{nextIncrement}</p>
                     </div>
                   </div>
 
@@ -575,7 +596,6 @@ export default function AuctionViewerPage() {
           </div>
         </div>
 
-        {/* 8 Teams — VIEW ONLY (no click) */}
         <section className="mt-6">
           <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-base font-bold text-white uppercase">8 Teams — Live Purse Status</h2>
@@ -587,13 +607,8 @@ export default function AuctionViewerPage() {
               const isLead = team.id === leadingTeamId;
               const pursePercent = Math.max(0, Math.min(100, Math.round((team.remainingPurse / team.initialAuctionPurse) * 100)));
               const slotsLeft = Math.max(0, team.targetSquadSize - team.boughtCount);
-
               return (
-                <div
-                  key={team.id}
-                  style={{ backgroundColor: isLead ? team.color : "#090909", color: isLead ? team.textOnColor : "#FFFFFF", borderColor: isLead ? team.color : "#1F1F1F" }}
-                  className="w-full rounded-xl border p-4 text-left"
-                >
+                <div key={team.id} style={{ backgroundColor: isLead ? team.color : "#090909", color: isLead ? team.textOnColor : "#FFFFFF", borderColor: isLead ? team.color : "#1F1F1F" }} className="w-full rounded-xl border p-4 text-left">
                   <div className="flex items-center justify-between gap-2">
                     <div className="flex min-w-0 items-center gap-3">
                       <TeamLogoBadge team={team} size={42} />
@@ -604,24 +619,13 @@ export default function AuctionViewerPage() {
                     </div>
                     <span className={`rounded-md px-2 py-0.5 text-xs font-bold ${isLead ? "bg-black/25" : "bg-[#141414] text-zinc-400"}`}>{pursePercent}%</span>
                   </div>
-
                   <div className={`mt-3 h-1.5 w-full overflow-hidden rounded-full ${isLead ? "bg-black/25" : "bg-white/10"}`}>
                     <div className="h-full rounded-full transition-all duration-300" style={{ width: `${pursePercent}%`, backgroundColor: isLead ? team.textOnColor : "#FACC15" }} />
                   </div>
-
                   <div className={`mt-3 grid grid-cols-3 gap-2 border-t pt-2.5 text-xs ${isLead ? "border-black/20" : "border-white/10 text-zinc-400"}`}>
-                    <div>
-                      <span className="block text-[11px] opacity-75">Purse</span>
-                      <span className="font-bold">₹{team.remainingPurse}</span>
-                    </div>
-                    <div>
-                      <span className="block text-[11px] opacity-75">Bought</span>
-                      <span className="font-bold">{team.boughtCount}</span>
-                    </div>
-                    <div>
-                      <span className="block text-[11px] opacity-75">Slots Left</span>
-                      <span className="font-bold">{slotsLeft}</span>
-                    </div>
+                    <div><span className="block text-[11px] opacity-75">Purse</span><span className="font-bold">₹{team.remainingPurse}</span></div>
+                    <div><span className="block text-[11px] opacity-75">Bought</span><span className="font-bold">{team.boughtCount}</span></div>
+                    <div><span className="block text-[11px] opacity-75">Slots Left</span><span className="font-bold">{slotsLeft}</span></div>
                   </div>
                 </div>
               );
